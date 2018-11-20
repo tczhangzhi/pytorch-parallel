@@ -1,0 +1,1 @@
+nvcc -keep -o sigmoid_cuda_kernal sigmoid_cuda_kernal.cu

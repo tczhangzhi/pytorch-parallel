@@ -1,0 +1,10 @@
+# from here: nvcc -dryrun -o sigmoid_cuda_kernal sigmoid_cuda_kernal.cu --keep 2>dryrun.out
+ptxas -arch=sm_30 -m64  "sigmoid_cuda_kernal.ptx"  -o "sigmoid_cuda_kernal.sm_30.cubin"
+fatbinary --create="sigmoid_cuda_kernal.fatbin" -64 "--image=profile=sm_30,file=sigmoid_cuda_kernal.sm_30.cubin" "--image=profile=compute_30,file=sigmoid_cuda_kernal.ptx" --embedded-fatbin="sigmoid_cuda_kernal.fatbin.c" --cuda
+gcc -E -x c++ -D__CUDACC__ -D__NVCC__  "-I/usr/local/cuda/bin/..//include"   -D"__CUDACC_VER_BUILD__=176" -D"__CUDACC_VER_MINOR__=0" -D"__CUDACC_VER_MAJOR__=9" -include "cuda_runtime.h" -m64 "sigmoid_cuda_kernal.cu" > "sigmoid_cuda_kernal.cpp4.ii"
+cudafe++ --gnu_version=50500 --allow_managed  --m64 --parse_templates --gen_c_file_name "sigmoid_cuda_kernal.cudafe1.cpp" --stub_file_name "sigmoid_cuda_kernal.cudafe1.stub.c" --module_id_file_name "sigmoid_cuda_kernal.module_id" "sigmoid_cuda_kernal.cpp4.ii"
+gcc -D__CUDA_ARCH__=300 -c -x c++  -DCUDA_DOUBLE_MATH_FUNCTIONS "-I/usr/local/cuda/bin/..//include"   -m64 -o "sigmoid_cuda_kernal.o" "sigmoid_cuda_kernal.cudafe1.cpp"
+nvlink --arch=sm_30 --register-link-binaries="sigmoid_cuda_kernal_dlink.reg.c" -m64   "-L/usr/local/cuda/bin/..//lib64/stubs" "-L/usr/local/cuda/bin/..//lib64" -cpu-arch=X86_64 "sigmoid_cuda_kernal.o"  -o "sigmoid_cuda_kernal_dlink.sm_30.cubin"
+fatbinary --create="sigmoid_cuda_kernal_dlink.fatbin" -64 -link "--image=profile=sm_30,file=sigmoid_cuda_kernal_dlink.sm_30.cubin" --embedded-fatbin="sigmoid_cuda_kernal_dlink.fatbin.c"
+gcc -c -x c++ -DFATBINFILE="\"sigmoid_cuda_kernal_dlink.fatbin.c\"" -DREGISTERLINKBINARYFILE="\"sigmoid_cuda_kernal_dlink.reg.c\"" -I. "-I/usr/local/cuda/bin/..//include"   -D"__CUDACC_VER_BUILD__=176" -D"__CUDACC_VER_MINOR__=0" -D"__CUDACC_VER_MAJOR__=9" -m64 -o "sigmoid_cuda_kernal_dlink.o" "/usr/local/cuda/bin/crt/link.stub"
+g++ -m64 -o "sigmoid_cuda_kernal" -Wl,--start-group "sigmoid_cuda_kernal_dlink.o" "sigmoid_cuda_kernal.o"   "-L/usr/local/cuda/bin/..//lib64/stubs" "-L/usr/local/cuda/bin/..//lib64" -lcudadevrt  -lcudart_static  -lrt -lpthread  -ldl  -Wl,--end-group
