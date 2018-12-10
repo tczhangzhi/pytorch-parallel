@@ -5,6 +5,7 @@ from torch.autograd import Function
 import linear_cpp
 
 class DenseFunction(Function):
+
     @staticmethod
     def forward(ctx, input, weight, bias=None):
         output = linear_cpp.forward(input, weight, bias)
@@ -21,6 +22,7 @@ class DenseFunction(Function):
         return grad_input, grad_weight, grad_bias
         
 class Dense(Module):
+    
     def __init__(self, input_features, output_features, bias=True):
         super(Dense, self).__init__()
         self.input_features = input_features
