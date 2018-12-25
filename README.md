@@ -73,6 +73,24 @@ Test your result.
 ./sigmoid_cuda_kernal
 ```
 
+### Benchmark
+
+Select mode to run the benchmark file.
+
+```
+python benchmark.py -m py
+python benchmark.py -m cpp
+python benchmark.py -m cuda
+```
+
+### Ring-AllReduce
+
+```
+python distributed.py -m py
+python distributed.py -m cpp
+python distributed.py -m cuda
+```
+
 ## How to write
 
 After Reading the example of the pytorch official website, I feel that it is really a little difficult for novices to learn CUDA. So I wrote a simple Demo for the students who just started. What we want to achieve is a Dense layer in Tensorflow. If it is not for teaching, you can use Linear + activation functions directly. But this time, we will start with Python and gradually use CPP and CUDA to optimize key operations.

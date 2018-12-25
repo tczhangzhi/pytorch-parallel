@@ -7,24 +7,26 @@ import torch
 import torch.nn as nn
 from torch.nn import Module, Parameter
 from torch.nn import functional as F
-from parallel.data_parallel import DataParallel
+from parallel.train import RingAllReduce
+from torch.utils.data import TensorDataset
 
 parser = argparse.ArgumentParser()
-parser.add_argument('example', choices=['py', 'cpp', 'cuda'])
+parser.add_argument('-m', '--mode', choices=['py', 'cpp', 'cuda'])
 parser.add_argument('-e', '--epoch', type=int, default=100)
 parser.add_argument('-s', '--size', type=int, default=100)
 options = parser.parse_args()
 
-if options.example == 'py':
+if options.mode == 'py':
     from python.dense import Dense
-elif options.example == 'cpp':
+elif options.mode == 'cpp':
     from cpp.dense import Dense
-else:
+elif options.mode == 'cuda':
     from cuda.dense import Dense
-    options.cuda = True
 
 inputs = torch.randn(options.size, 256)
 labels = torch.rand(options.size).mul(10).long()
+
+dataset = TensorDataset(inputs, labels)
 
 class Model(Module):
 
@@ -42,32 +44,8 @@ class Model(Module):
 
 model = Model()
 
-inputs = inputs.cuda()
-labels = labels.cuda()
-model = model.cuda()
-
-# dataparallel = DataParallel(model, device_ids=[0, 1, 2, 3])
-
 criterion = nn.CrossEntropyLoss()
-# optimizer = torch.optim.SGD(dataparallel.module.parameters(), lr=1e-4)
 optimizer = torch.optim.SGD(model.parameters(), lr=1e-4)
 
-forward_time = 0
-backward_time = 0
-for _ in range(options.epoch):
-    optimizer.zero_grad()
-
-    start = time.time()
-    outputs = model(inputs)
-    # outputs = dataparallel(inputs)
-    loss = criterion(outputs, labels)
-    elapsed = time.time() - start
-    forward_time += elapsed
-
-    start = time.time()
-    loss.backward()
-    optimizer.step()
-    elapsed = time.time() - start
-    backward_time += elapsed
-
-print('Forward: {0:.3f} | Backward {1:.3f}'.format(forward_time, backward_time))
+handler = RingAllReduce(model, criterion, optimizer, dataset)
+handler.train()
