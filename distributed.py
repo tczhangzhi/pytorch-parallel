@@ -47,5 +47,5 @@ model = Model()
 criterion = nn.CrossEntropyLoss()
 optimizer = torch.optim.SGD(model.parameters(), lr=1e-4)
 
-handler = RingAllReduce(model, criterion, optimizer, dataset)
+handler = RingAllReduce(model, criterion, optimizer, dataset, epoch=options.epoch)
 handler.train()

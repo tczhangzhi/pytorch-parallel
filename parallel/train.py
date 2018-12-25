@@ -46,11 +46,12 @@ class DataPartitioner(object):
 
 class RingAllReduce(object):
 
-    def __init__(self, model, criterion, optimizer, dataset, addr='127.0.0.1', port='29500', backend='gloo'):
+    def __init__(self, model, criterion, optimizer, dataset, epoch=100, addr='127.0.0.1', port='29500', backend='gloo'):
         self.model = model
         self.criterion = criterion
         self.optimizer = optimizer
         self.dataset = dataset
+        self.epoch = epoch
         self.addr = addr
         self.port = port
         self.backend = backend
@@ -80,14 +81,14 @@ class RingAllReduce(object):
         criterion = self.criterion
 
         num_batches = ceil(len(train_set.dataset) / float(bsz))
-        for epoch in range(10):
+        for epoch in range(self.epoch):
             epoch_loss = 0.0
             for data, target in train_set:
                 data, target = Variable(data), Variable(target)
                 optimizer.zero_grad()
                 output = self.model(data)
                 loss = criterion(output, target)
-                epoch_loss += loss.data[0]
+                epoch_loss += loss.data.item()
                 loss.backward()
                 self.average_gradients()
                 optimizer.step()
