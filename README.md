@@ -1,6 +1,6 @@
-# Custom Dense layer in PyTorch
+# Parallel Optimization in PyTorch
 
-The project customizes the dense layer in pytorch following the official tutorial. In the project, we first write python code, and then gradually use C++ and CUDA to optimize key operations. I hope this project will help your Pytorch, ATen, CUDA and PTX learning.
+In the project, we first write python code, and then gradually use C++ and CUDA to optimize key operations. Next, we implemented distributed training using the map-allreduce algorithm. I hope this project will help your Pytorch, ATen, CUDA and PTX learning.
 
 ## How to run
 
